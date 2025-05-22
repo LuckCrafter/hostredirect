@@ -23,7 +23,7 @@ import (
 
 // Config holds the server mappings
 type Config struct {
-	ServerMappings map[string]string `mapstructure:"serverMappings"`
+	ServerMappings map[string]string
 }
 
 type Client struct {
@@ -235,7 +235,7 @@ func (c *Client) getConfig() Config {
 		if err != nil {
 			continue
 		}
-		config.ServerMappings[server.Identifier] = data.Data.Domain.Value
+		config.ServerMappings[data.Data.Domain.Value] = server.Identifier
 	}
 	return config
 }
