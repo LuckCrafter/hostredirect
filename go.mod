@@ -7,6 +7,7 @@ toolchain go1.24.3
 require (
 	github.com/go-logr/logr v1.4.2
 	github.com/pufferpanel/pufferpanel/v3 v3.0.0-rc.13
+	github.com/robinbraemer/event v0.0.1
 	go.minekube.com/common v0.0.5
 	go.minekube.com/gate v0.36.7
 )
@@ -77,7 +78,6 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
 	github.com/pires/go-proxyproto v0.7.1-0.20231012122632-e5b291b295b4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/robinbraemer/event v0.0.1 // indirect
 	github.com/rs/xid v1.5.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.7.0 // indirect
