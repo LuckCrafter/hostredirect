@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -40,47 +41,15 @@ var Plugin = proxy.Plugin{
 	Init: func(ctx context.Context, p *proxy.Proxy) error {
 		// Get the logger for this plugin.
 		log := logr.FromContextOrDiscard(ctx)
-		log.Info("Hello from HostRedirect plugin!")
 
-		/*
-			// Initialize Viper configuration
-			viper.SetConfigName("mapping")
-			viper.SetConfigType("yaml")
-			viper.AddConfigPath("./")
-
-			// Set default values
-			viper.SetDefault("serverMappings", map[string]string{
-				"examplehost1.com": "server1",
-				"examplehost2.com": "server2",
-			})
-
-			// Read the config file
-			if err := viper.ReadInConfig(); err != nil {
-				// Create a config file if it doesn't exist
-				log.Info("Couldn't find mapping.yml, creating a new config file")
-				err = viper.WriteConfigAs("./mapping.yml")
-				if err != nil {
-					return fmt.Errorf("error creating config file: %w", err)
-				}
-			}
-
-			// Manually unmarshal the config
-			var config Config
-			if err := viper.Unmarshal(&config); err != nil {
-				return fmt.Errorf("failed to unmarshal config: %w", err)
-			}
-
-			// Log the server mappings for debugging purposes
-			log.Info("Server Mappings", "serverMappings", config.ServerMappings)
-
-			// Register some event handlers.
-		*/
-
-		client := NewClient(context.TODO(), "", "", "")
-
+		log.Info("HostRedirect Initlize...")
+		baseurl := os.Getenv("HOSTREDIRECT_URL")
+		clientId := os.Getenv("HOSTREDIRECT_CLIENTID")
+		clientSecret := os.Getenv("HOSTREDIRECT_CLIENTSECRET")
+		client := NewClient(ctx, baseurl, clientId, clientSecret)
 		event.Subscribe(p.Event(), 0, onPlayerChooseInitialServer(p, log, client))
-		log.Info("HostRedirect Initlized")
 
+		log.Info("HostRedirect Initlized")
 		return nil
 	},
 }
