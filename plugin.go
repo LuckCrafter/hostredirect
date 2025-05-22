@@ -75,7 +75,7 @@ func onPlayerChooseInitialServer(p *proxy.Proxy, log logr.Logger, c *Client) fun
 		// Get the registered server by name.
 		var server proxy.RegisteredServer
 		for _, s := range p.Servers() {
-			if s.ServerInfo().Name() == serverName {
+			if s.ServerInfo().Addr().String() == serverName {
 				server = s
 				break
 			}
