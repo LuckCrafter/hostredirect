@@ -20,7 +20,7 @@ ARG TARGETARCH
 
 # Build
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
-    go build -ldflags="-s -w" -a -o gate cmd/hosredirect/main.go
+    go build -ldflags="-s -w" -a -o gate cmd/main.go
 
 # Move binary into final image
 FROM --platform=$BUILDPLATFORM gcr.io/distroless/static-debian11 AS app
