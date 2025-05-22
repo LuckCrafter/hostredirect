@@ -181,12 +181,13 @@ type Value struct {
 	Value string `json:"value"`
 }
 
-type Domain struct {
-	Domain Value `json:"gate.hostredirect.domain"`
+type Option struct {
+	Domain     Value `json:"gate.hostredirect.domain"`
+	ServerName Value `json:"gate.hostredirect.servername"`
 }
 
 type Data struct {
-	Data Domain `json:"data"`
+	Data Option `json:"data"`
 }
 
 func (c *Client) ServerData(serverID string) (*Data, error) {
@@ -223,6 +224,27 @@ func (c *Client) ServerData(serverID string) (*Data, error) {
 	return &data, nil
 }
 
+func (c *Client) getServer(id, path string) ([]byte, error) {
+	token, err := c.RenewToken()
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(c.ctx, http.MethodGet, fmt.Sprintf("%s/api/servers/%s/file/%s", c.baseUrl, id, path), nil)
+	if err != nil {
+		return nil, fmt.Errorf("creating read server file request: %w", err)
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("%s %s", token.TokenType, token.AccessToken))
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("executing read server file request: %w", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	return io.ReadAll(resp.Body)
+}
+
 func (c *Client) getConfig() Config {
 	var config Config
 	config.ServerMappings = map[string]string{}
@@ -235,7 +257,7 @@ func (c *Client) getConfig() Config {
 		if err != nil {
 			continue
 		}
-		config.ServerMappings[data.Data.Domain.Value] = server.Identifier
+		config.ServerMappings[data.Data.Domain.Value] = data.Data.ServerName.Value
 	}
 	return config
 }
