@@ -265,24 +265,23 @@ func (c *Client) getConfig(log logr.Logger) Config {
 	for _, server := range search.Servers {
 		data, err := c.ServerData(server.Identifier)
 		if err != nil {
-            log.Info(server.Identifier)
-            log.Info("Error")
+			log.Error(server.Identifier)
 			continue
 		}
-        log.Info(server.Identifier)
-        if len(strings.TrimSpace(data.Data.ServerName.Value)) == 0 || len(strings.TrimSpace(data.Data.Domain.Value)) == 0 {
-            log.Info("Error: Empty Values")
-            log.Info(fmt.Sprintf("Error: map[%s]=%s",data.Data.Domain.Value,data.Data.ServerName.Value))
-            continue
-        }
-        if data.Data.Domain.Value == strings.Split(data.Data.Domain.Value, ":")[0] {
-    		config.ServerMappings[data.Data.Domain.Value + ":25565"] = data.Data.ServerName.Value
-            log.Info(fmt.Sprintf("map[%s:25565]=%s",data.Data.Domain.Value,data.Data.ServerName.Value))
-        } else {
-    		config.ServerMappings[data.Data.Domain.Value] = data.Data.ServerName.Value
-            log.Info(fmt.Sprintf("map[%s]=%s",data.Data.Domain.Value,data.Data.ServerName.Value))
-        }
+		log.Info(server.Identifier)
+		if len(strings.TrimSpace(data.Data.ServerName.Value)) == 0 || len(strings.TrimSpace(data.Data.Domain.Value)) == 0 {
+			log.Info("Error: Empty Values")
+			log.Info(fmt.Sprintf("Error: map[%s]=%s", data.Data.Domain.Value, data.Data.ServerName.Value))
+			continue
+		}
+		if data.Data.Domain.Value == strings.Split(data.Data.Domain.Value, ":")[0] {
+			config.ServerMappings[data.Data.Domain.Value+":25565"] = data.Data.ServerName.Value
+			log.Info(fmt.Sprintf("map[%s:25565]=%s", data.Data.Domain.Value, data.Data.ServerName.Value))
+		} else {
+			config.ServerMappings[data.Data.Domain.Value] = data.Data.ServerName.Value
+			log.Info(fmt.Sprintf("map[%s]=%s", data.Data.Domain.Value, data.Data.ServerName.Value))
+		}
 	}
-//    fmt.Println(string(config))
+	//    fmt.Println(string(config))
 	return config
 }
