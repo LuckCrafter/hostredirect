@@ -3,6 +3,7 @@ package hostredirect
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -19,9 +20,10 @@ var Plugin = proxy.Plugin{
 	Init: func(ctx context.Context, p *proxy.Proxy) error {
 		// Get the logger for this plugin.
 		log := logr.FromContextOrDiscard(ctx)
+		basedomain := os.Getenv("HOSTDOMAIN")
 
 		log.Info("HostRedirect Initlize...")
-		event.Subscribe(p.Event(), 0, onPlayerChooseInitialServer(p, log))
+		event.Subscribe(p.Event(), 0, onPlayerChooseInitialServer(p, log, basedomain))
 
 		log.Info("HostRedirect Initlized")
 		return nil
@@ -29,14 +31,14 @@ var Plugin = proxy.Plugin{
 }
 
 // onPlayerChooseInitialServer handles the PlayerChooseInitialServerEvent to redirect players.
-func onPlayerChooseInitialServer(p *proxy.Proxy, log logr.Logger) func(*proxy.PlayerChooseInitialServerEvent) {
+func onPlayerChooseInitialServer(p *proxy.Proxy, log logr.Logger, basedomain string) func(*proxy.PlayerChooseInitialServerEvent) {
 	return func(e *proxy.PlayerChooseInitialServerEvent) {
 		// Get the player's connecting host.
 		conn := e.Player().VirtualHost()
 		host := conn.String()
 		host = lite.ClearVirtualHost(host)
 
-		serverDomain, _, _ := strings.Cut(host, ".")
+		serverDomain, _, _ := strings.Cut(host, "."+basedomain)
 
 		server := p.Server(serverDomain)
 		if server == nil {
