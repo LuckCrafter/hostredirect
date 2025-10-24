@@ -4,30 +4,14 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/go-logr/logr"
-	"github.com/pufferpanel/pufferpanel/v3/oauth2"
 	"github.com/robinbraemer/event"
 
 	"go.minekube.com/common/minecraft/component"
 	"go.minekube.com/gate/pkg/edition/java/lite"
 	"go.minekube.com/gate/pkg/edition/java/proxy"
 )
-
-// Config holds the server mappings
-type Config struct {
-	ServerMappings map[string]string
-}
-
-type Client struct {
-	ctx            context.Context
-	baseUrl        string
-	clientId       string
-	clientSecret   string
-	token          *oauth2.TokenResponse
-	tokenExpiresAt time.Time
-}
 
 // Plugin is a demo plugin that redirects players based on the host they connect with.
 var Plugin = proxy.Plugin{
