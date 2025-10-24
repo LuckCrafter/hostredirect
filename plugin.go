@@ -2,14 +2,12 @@ package hostredirect
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"strings"
 
 	"github.com/go-logr/logr"
 	"github.com/robinbraemer/event"
 
-	"go.minekube.com/common/minecraft/component"
 	"go.minekube.com/gate/pkg/edition/java/lite"
 	"go.minekube.com/gate/pkg/edition/java/proxy"
 )
@@ -42,9 +40,6 @@ func onPlayerChooseInitialServer(p *proxy.Proxy, log logr.Logger, basedomain str
 
 		server := p.Server(serverDomain)
 		if server == nil {
-			msg := fmt.Sprintf("Server not found: %s", server)
-			log.Info(msg)
-			e.Player().Disconnect(&component.Text{Content: msg})
 			return
 		}
 
