@@ -62,7 +62,7 @@ func onPlayerChooseInitialServer(p *proxy.Proxy, log logr.Logger, c *Client) fun
 		host := conn.String()
 		host = lite.ClearVirtualHost(host)
 
-		config := c.getConfig()
+		config := c.getConfig(log)
 
 		// Check if we have a server mapping for this host.
 		serverName, ok := config.ServerMappings[host]
@@ -147,12 +147,16 @@ func (c *Client) RenewToken() (*oauth2.TokenResponse, error) {
 }
 
 func (c *Client) ServerSearch() (*models.ServerSearchResponse, error) {
+	return c.serverSearch(1)
+}
+
+func (c *Client) serverSearch(page uint) (*models.ServerSearchResponse, error) {
 	token, err := c.RenewToken()
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequestWithContext(c.ctx, http.MethodGet, fmt.Sprintf("%s/api/servers", c.baseUrl), nil)
+	req, err := http.NewRequestWithContext(c.ctx, http.MethodGet, fmt.Sprintf("%s/api/servers?page=%d&limit=100", c.baseUrl, page), nil)
 	if err != nil {
 		return nil, fmt.Errorf("creating server search request: %w", err)
 	}
@@ -174,6 +178,12 @@ func (c *Client) ServerSearch() (*models.ServerSearchResponse, error) {
 		return nil, err
 	}
 
+	if int64(search.Metadata.Paging.Size*page) < search.Metadata.Paging.Total {
+		var extraSearch *models.ServerSearchResponse
+		extraSearch, err = c.serverSearch(page + 1)
+		search.Servers = append(search.Servers, extraSearch.Servers...)
+	}
+
 	return search, nil
 }
 
@@ -182,7 +192,7 @@ type Value struct {
 }
 
 type Option struct {
-	Domain     Value `json:"gate.hostredirect.domain"`
+	Domain     Value `json:"ip"`
 	ServerName Value `json:"gate.hostredirect.servername"`
 }
 
@@ -196,7 +206,7 @@ func (c *Client) ServerData(serverID string) (*Data, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequestWithContext(c.ctx, http.MethodGet, fmt.Sprintf("%s/api/servers/%s/data", c.baseUrl, serverID), nil)
+	req, err := http.NewRequestWithContext(c.ctx, http.MethodGet, fmt.Sprintf("%s/api/servers/%s/definition", c.baseUrl, serverID), nil)
 	if err != nil {
 		return nil, fmt.Errorf("creating server search request: %w", err)
 	}
@@ -245,7 +255,7 @@ func (c *Client) getServer(id, path string) ([]byte, error) {
 	return io.ReadAll(resp.Body)
 }
 
-func (c *Client) getConfig() Config {
+func (c *Client) getConfig(log logr.Logger) Config {
 	var config Config
 	config.ServerMappings = map[string]string{}
 	search, err := c.ServerSearch()
@@ -255,9 +265,24 @@ func (c *Client) getConfig() Config {
 	for _, server := range search.Servers {
 		data, err := c.ServerData(server.Identifier)
 		if err != nil {
+            log.Info(server.Identifier)
+            log.Info("Error")
 			continue
 		}
-		config.ServerMappings[data.Data.Domain.Value] = data.Data.ServerName.Value
+        log.Info(server.Identifier)
+        if len(strings.TrimSpace(data.Data.ServerName.Value)) == 0 || len(strings.TrimSpace(data.Data.Domain.Value)) == 0 {
+            log.Info("Error: Empty Values")
+            log.Info(fmt.Sprintf("Error: map[%s]=%s",data.Data.Domain.Value,data.Data.ServerName.Value))
+            continue
+        }
+        if data.Data.Domain.Value == strings.Split(data.Data.Domain.Value, ":")[0] {
+    		config.ServerMappings[data.Data.Domain.Value + ":25565"] = data.Data.ServerName.Value
+            log.Info(fmt.Sprintf("map[%s:25565]=%s",data.Data.Domain.Value,data.Data.ServerName.Value))
+        } else {
+    		config.ServerMappings[data.Data.Domain.Value] = data.Data.ServerName.Value
+            log.Info(fmt.Sprintf("map[%s]=%s",data.Data.Domain.Value,data.Data.ServerName.Value))
+        }
 	}
+//    fmt.Println(string(config))
 	return config
 }
